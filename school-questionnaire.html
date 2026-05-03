@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Online vs Offline Schooling — Survey</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0e0c09;
+    --paper: #f5f0e8;
+    --cream: #ede7d4;
+    --online: #1a6bff;
+    --offline: #d44e00;
+    --accent: #2ecc71;
+    --border: #c8bfa8;
+    --muted: #8a7f6e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NOISE TEXTURE */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.6;
+  }
+
+  .header {
+    padding: 3rem 2rem 2rem;
+    max-width: 780px;
+    margin: 0 auto;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(2rem, 6vw, 3.4rem);
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+  }
+
+  h1 span.online { color: var(--online); }
+  h1 span.offline { color: var(--offline); }
+
+  .subtitle {
+    font-size: 0.78rem;
+    color: var(--muted);
+    max-width: 500px;
+    line-height: 1.7;
+  }
+
+  /* SURVEY SECTION */
+  #survey-section {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem;
+  }
+
+  .progress-bar-wrap {
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--ink);
+    width: 0%;
+    transition: width 0.4s ease;
+    border-radius: 2px;
+  }
+
+  .progress-label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .question-card {
+    background: var(--cream);
+    border: 1.5px solid var(--border);
+    border-radius: 2px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+
+  .question-card:hover { border-color: var(--ink); }
+
+  .q-number {
+    position: absolute;
+    top: 1.5rem; right: 1.5rem;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .q-text {
+    font-family: 'Fraunces', serif;
+    font-size: 1.05rem;
+    font-weight: 300;
+    font-style: italic;
+    margin-bottom: 1.4rem;
+    line-height: 1.5;
+    padding-right: 3rem;
+  }
+
+  .options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+
+  .options.single { grid-template-columns: 1fr; }
+
+  .option-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    padding: 0.65rem 0.9rem;
+    border: 1.5px solid var(--border);
+    background: var(--paper);
+    font-size: 0.76rem;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .option-label:hover {
+    border-color: var(--ink);
+    background: var(--cream);
+  }
+
+  .option-label input { display: none; }
+
+  .option-label .dot {
+    width: 14px; height: 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .option-label input:checked ~ .dot {
+    border-color: var(--ink);
+    background: var(--ink);
+  }
+
+  .option-label input:checked ~ .dot::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    background: var(--paper);
+    border-radius: 50%;
+  }
+
+  .option-label.selected-online {
+    border-color: var(--online);
+    background: #e8f0ff;
+  }
+
+  .option-label.selected-offline {
+    border-color: var(--offline);
+    background: #fff0e8;
+  }
+
+  .option-label.selected-neutral {
+    border-color: #888;
+    background: var(--cream);
+  }
+
+  /* SUBMIT BUTTON */
+  .submit-wrap {
+    text-align: center;
+    margin-top: 2.5rem;
+  }
+
+  .btn-submit {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    padding: 1rem 3rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-submit:hover {
+    background: var(--offline);
+    transform: translateY(-2px);
+  }
+
+  .btn-submit:disabled {
+    background: var(--border);
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .answer-count {
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-top: 0.8rem;
+  }
+
+  /* RESULTS */
+  #results-section {
+    display: none;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 4rem;
+    animation: fadeUp 0.5s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .results-header {
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .results-header h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  /* VERDICT BANNER */
+  .verdict {
+    border: 2px solid var(--ink);
+    padding: 1.8rem 2rem;
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .verdict-icon {
+    font-size: 3rem;
+    line-height: 1;
+  }
+
+  .verdict-text h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 1.5rem;
+    font-style: italic;
+  }
+
+  .verdict-text p {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 0.3rem;
+  }
+
+  /* BIG SCORE */
+  .score-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .score-box {
+    border: 2px solid var(--border);
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .score-box.online { border-color: var(--online); }
+  .score-box.offline { border-color: var(--offline); }
+
+  .score-num {
+    font-family: 'Fraunces', serif;
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .score-box.online .score-num { color: var(--online); }
+  .score-box.offline .score-num { color: var(--offline); }
+
+  .score-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 0.4rem;
+  }
+
+  .vs-divider {
+    font-family: 'Fraunces', serif;
+    font-size: 1.2rem;
+    font-style: italic;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  /* Q BY Q BREAKDOWN */
+  .breakdown-title {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1.2rem;
+  }
+
+  .breakdown-item {
+    margin-bottom: 1.5rem;
+    border-left: 3px solid var(--border);
+    padding-left: 1.2rem;
+  }
+
+  .breakdown-item .q-label {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 0.88rem;
+    margin-bottom: 0.6rem;
+    font-weight: 300;
+    line-height: 1.4;
+  }
+
+  .bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-bottom: 0.25rem;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--border);
+    border-radius: 0;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 0;
+    transition: width 0.8s cubic-bezier(0.22,1,0.36,1);
+  }
+
+  .bar-fill.online-bar { background: var(--online); }
+  .bar-fill.offline-bar { background: var(--offline); }
+  .bar-fill.neutral-bar { background: var(--muted); }
+
+  .bar-pct {
+    width: 3rem;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .chosen-answer {
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 0.3rem;
+  }
+
+  .chosen-answer strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  /* RETRY */
+  .btn-retry {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--ink);
+    border: 1.5px solid var(--ink);
+    padding: 0.75rem 2rem;
+    cursor: pointer;
+    margin-top: 2.5rem;
+    transition: all 0.2s;
+  }
+
+  .btn-retry:hover { background: var(--ink); color: var(--paper); }
+
+  @media (max-width: 540px) {
+    .options { grid-template-columns: 1fr; }
+    .score-row { grid-template-columns: 1fr; }
+    .vs-divider { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="eyebrow">School Research Project · Survey Instrument</div>
+  <h1>
+    <span class="online">Online</span><br>
+    vs<br>
+    <span class="offline">Offline</span><br>
+    Schooling
+  </h1>
+  <p class="subtitle">10 questions to explore your personal experience and preferences. Answer honestly — there are no right or wrong answers. Results are calculated instantly.</p>
+</div>
+
+<!-- SURVEY -->
+<div id="survey-section">
+
+  <div class="progress-bar-wrap">
+    <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+    <div class="progress-label" id="prog-label">0 / 10 answered</div>
+  </div>
+
+  <!-- Questions injected by JS -->
+  <div id="questions-container"></div>
+
+  <div class="submit-wrap">
+    <button class="btn-submit" id="submit-btn" disabled onclick="showResults()">
+      View My Results →
+    </button>
+    <div class="answer-count" id="ans-count">Answer all 10 questions to continue</div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="results-section">
+  <div class="results-header">
+    <div class="eyebrow">Survey Complete · Your Results</div>
+    <h2>Your Schooling Profile</h2>
+  </div>
+
+  <div class="verdict" id="verdict-box">
+    <div class="verdict-icon" id="verdict-icon">🎓</div>
+    <div class="verdict-text">
+      <h3 id="verdict-title">—</h3>
+      <p id="verdict-sub">—</p>
+    </div>
+  </div>
+
+  <div class="score-row">
+    <div class="score-box online">
+      <div class="score-num" id="online-score">0</div>
+      <div class="score-label">Online Points</div>
+    </div>
+    <div class="vs-divider">vs</div>
+    <div class="score-box offline">
+      <div class="score-num" id="offline-score">0</div>
+      <div class="score-label">Offline Points</div>
+    </div>
+  </div>
+
+  <div class="breakdown-title">Question-by-Question Breakdown</div>
+  <div id="breakdown-list"></div>
+
+  <div>
+    <button class="btn-retry" onclick="resetSurvey()">← Retake Survey</button>
+  </div>
+</div>
+
+<script>
+const questions = [
+  {
+    text: "Where do you find it easier to concentrate and absorb new material?",
+    options: [
+      { label: "At home on my screen, at my own pace", type: "online" },
+      { label: "In a physical classroom with a teacher present", type: "offline" },
+      { label: "Depends on the subject", type: "neutral" },
+      { label: "Neither — I struggle both ways", type: "neutral" }
+    ]
+  },
+  {
+    text: "How do you feel about social interaction in your learning environment?",
+    options: [
+      { label: "I prefer minimal distraction — online suits me", type: "online" },
+      { label: "I need face-to-face interaction to stay motivated", type: "offline" },
+      { label: "Online friendships work just as well for me", type: "online" },
+      { label: "School friendships are essential — offline is better", type: "offline" }
+    ]
+  },
+  {
+    text: "Which type of feedback helps you improve faster?",
+    options: [
+      { label: "Instant automated feedback & quizzes (online)", type: "online" },
+      { label: "Direct teacher comments and class discussion (offline)", type: "offline" },
+      { label: "Both are equally useful", type: "neutral" }
+    ]
+  },
+  {
+    text: "How well do you manage your own schedule and study habits?",
+    options: [
+      { label: "Very well — I'm disciplined and self-motivated", type: "online" },
+      { label: "I need external structure and fixed timetables", type: "offline" },
+      { label: "I try, but I often get distracted at home", type: "offline" }
+    ]
+  },
+  {
+    text: "When it comes to access to learning resources, which do you prefer?",
+    options: [
+      { label: "Unlimited digital content, videos, and global experts", type: "online" },
+      { label: "Physical textbooks, labs, and hands-on equipment", type: "offline" },
+      { label: "A mix of both is ideal", type: "neutral" }
+    ]
+  },
+  {
+    text: "How do you feel about commuting to school every day?",
+    options: [
+      { label: "It's a waste of time — I'd rather study from home", type: "online" },
+      { label: "The commute helps me switch into 'school mode'", type: "offline" },
+      { label: "It's tiring but the campus experience is worth it", type: "offline" },
+      { label: "I don't mind either way", type: "neutral" }
+    ]
+  },
+  {
+    text: "In your experience, which format produces better academic results?",
+    options: [
+      { label: "Online — I perform better at my own pace", type: "online" },
+      { label: "Offline — teacher guidance improves my grades", type: "offline" },
+      { label: "I haven't noticed a significant difference", type: "neutral" }
+    ]
+  },
+  {
+    text: "How important is extracurricular activity (sports, clubs, events) to you?",
+    options: [
+      { label: "Not very important — academics are my focus", type: "online" },
+      { label: "Very important — physical school is necessary for this", type: "offline" },
+      { label: "Important, but online schools can offer virtual clubs", type: "online" },
+      { label: "Extremely important — offline wins here", type: "offline" }
+    ]
+  },
+  {
+    text: "How do you handle technical issues or lack of internet access?",
+    options: [
+      { label: "I have reliable internet — tech issues are rare for me", type: "online" },
+      { label: "It's a real problem; offline school is more reliable", type: "offline" },
+      { label: "It happens sometimes but I manage", type: "neutral" }
+    ]
+  },
+  {
+    text: "If you had to choose your preferred schooling model going forward, what would it be?",
+    options: [
+      { label: "Fully online — flexibility and independence", type: "online" },
+      { label: "Fully offline — structure and real connection", type: "offline" },
+      { label: "Hybrid — a blend of both worlds", type: "neutral" },
+      { label: "I'm genuinely unsure", type: "neutral" }
+    ]
+  }
+];
+
+let answers = {};
+
+function buildQuestions() {
+  const container = document.getElementById('questions-container');
+  container.innerHTML = '';
+  questions.forEach((q, qi) => {
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    const isSingle = q.options.length <= 3;
+    card.innerHTML = `
+      <div class="q-number">Q${qi+1}</div>
+      <div class="q-text">${q.text}</div>
+      <div class="options ${isSingle ? 'single' : ''}">
+        ${q.options.map((opt, oi) => `
+          <label class="option-label" id="opt-${qi}-${oi}">
+            <input type="radio" name="q${qi}" value="${opt.type}|${oi}" onchange="recordAnswer(${qi}, '${opt.type}', ${oi})">
+            <span class="dot"></span>
+            <span>${opt.label}</span>
+          </label>
+        `).join('')}
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+function recordAnswer(qi, type, oi) {
+  // Deselect all labels in this question
+  questions[qi].options.forEach((_, i) => {
+    const lbl = document.getElementById(`opt-${qi}-${i}`);
+    lbl.classList.remove('selected-online','selected-offline','selected-neutral');
+  });
+  // Highlight selected
+  const lbl = document.getElementById(`opt-${qi}-${oi}`);
+  lbl.classList.add(`selected-${type}`);
+
+  answers[qi] = { type, oi, text: questions[qi].options[oi].label };
+  updateProgress();
+}
+
+function updateProgress() {
+  const count = Object.keys(answers).length;
+  document.getElementById('prog-fill').style.width = `${count * 10}%`;
+  document.getElementById('prog-label').textContent = `${count} / 10 answered`;
+  const btn = document.getElementById('submit-btn');
+  const lbl = document.getElementById('ans-count');
+  if (count === 10) {
+    btn.disabled = false;
+    lbl.textContent = 'All questions answered — ready to submit!';
+  } else {
+    btn.disabled = true;
+    lbl.textContent = `${10 - count} question${10 - count !== 1 ? 's' : ''} remaining`;
+  }
+}
+
+function showResults() {
+  // Tally
+  let online = 0, offline = 0, neutral = 0;
+  questions.forEach((_, qi) => {
+    const a = answers[qi].type;
+    if (a === 'online') online++;
+    else if (a === 'offline') offline++;
+    else neutral++;
+  });
+
+  document.getElementById('online-score').textContent = online;
+  document.getElementById('offline-score').textContent = offline;
+
+  // Verdict
+  const verdictBox = document.getElementById('verdict-box');
+  const icon = document.getElementById('verdict-icon');
+  const title = document.getElementById('verdict-title');
+  const sub = document.getElementById('verdict-sub');
+
+  if (online > offline + 1) {
+    verdictBox.style.borderColor = 'var(--online)';
+    icon.textContent = '💻';
+    title.textContent = 'You\'re an Online Learner at heart.';
+    sub.textContent = `${online} out of 10 answers favoured online schooling. You value flexibility, independence, and digital access.`;
+  } else if (offline > online + 1) {
+    verdictBox.style.borderColor = 'var(--offline)';
+    icon.textContent = '🏫';
+    title.textContent = 'You thrive in the traditional classroom.';
+    sub.textContent = `${offline} out of 10 answers favoured offline schooling. You value structure, human connection, and hands-on learning.`;
+  } else {
+    verdictBox.style.borderColor = '#888';
+    icon.textContent = '⚖️';
+    title.textContent = 'You\'re a Hybrid Learner — balanced between both worlds.';
+    sub.textContent = `Online: ${online} · Offline: ${offline} · Neutral: ${neutral}. You see merit in both models equally.`;
+  }
+
+  // Breakdown
+  const breakdown = document.getElementById('breakdown-list');
+  breakdown.innerHTML = '';
+
+  // Simulated class averages for each question (adds realism to the project)
+  const classAvg = [
+    { online: 42, offline: 38, neutral: 20 },
+    { online: 28, offline: 52, neutral: 20 },
+    { online: 33, offline: 45, neutral: 22 },
+    { online: 38, offline: 40, neutral: 22 },
+    { online: 55, offline: 25, neutral: 20 },
+    { online: 48, offline: 35, neutral: 17 },
+    { online: 36, offline: 40, neutral: 24 },
+    { online: 22, offline: 60, neutral: 18 },
+    { online: 50, offline: 30, neutral: 20 },
+    { online: 35, offline: 30, neutral: 35 },
+  ];
+
+  questions.forEach((q, qi) => {
+    const ans = answers[qi];
+    const avg = classAvg[qi];
+    const item = document.createElement('div');
+    item.className = 'breakdown-item';
+    item.innerHTML = `
+      <div class="q-label">Q${qi+1}. ${q.text}</div>
+      <div class="bar-wrap">
+        <span style="width:4rem;font-size:0.65rem;color:var(--online)">ONLINE</span>
+        <div class="bar-track"><div class="bar-fill online-bar" style="width:0%" data-w="${avg.online}"></div></div>
+        <span class="bar-pct">${avg.online}%</span>
+      </div>
+      <div class="bar-wrap">
+        <span style="width:4rem;font-size:0.65rem;color:var(--offline)">OFFLINE</span>
+        <div class="bar-track"><div class="bar-fill offline-bar" style="width:0%" data-w="${avg.offline}"></div></div>
+        <span class="bar-pct">${avg.offline}%</span>
+      </div>
+      <div class="bar-wrap">
+        <span style="width:4rem;font-size:0.65rem;color:var(--muted)">NEUTRAL</span>
+        <div class="bar-track"><div class="bar-fill neutral-bar" style="width:0%" data-w="${avg.neutral}"></div></div>
+        <span class="bar-pct">${avg.neutral}%</span>
+      </div>
+      <div class="chosen-answer">Your answer: <strong>${ans.text}</strong> <span style="color:var(--${ans.type === 'neutral' ? 'muted' : ans.type})">[${ans.type.toUpperCase()}]</span></div>
+    `;
+    breakdown.appendChild(item);
+  });
+
+  document.getElementById('survey-section').style.display = 'none';
+  document.getElementById('results-section').style.display = 'block';
+
+  // Animate bars
+  setTimeout(() => {
+    document.querySelectorAll('.bar-fill').forEach(bar => {
+      bar.style.width = bar.dataset.w + '%';
+    });
+  }, 100);
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function resetSurvey() {
+  answers = {};
+  buildQuestions();
+  updateProgress();
+  document.getElementById('survey-section').style.display = 'block';
+  document.getElementById('results-section').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+buildQuestions();
+updateProgress();
+</script>
+</body>
+</html>
